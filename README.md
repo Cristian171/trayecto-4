@@ -69,21 +69,19 @@ Envío de Datos:
 
 Si se requiere enviar datos al dispositivo conectado, `SerialController` utiliza `SendSerialMessage()` para pasar un mensaje al `SerialThread`, que lo escribe en el puerto serial.
 
-Análisis del Plugin Ardity - Ejercicio 3
+## Análisis del Plugin Ardity - Ejercicio 3
 Este análisis se centra en la implementación de comunicación serial entre Unity y Arduino utilizando el plugin Ardity. Revisaremos el funcionamiento del código de Arduino y su integración en Unity, utilizando como referencia la escena DemoScene_UserPoll_ReadWrite.
 
 Código Arduino
 A continuación, se presenta el código de Arduino usado en este demo para un protocolo ASCII:
 ```
-cpp
-Copiar código
-uint32_t last_time = 0;
+    uint32_t last_time = 0;
 
-void setup() {
+    void setup() {
     Serial.begin(19200);
-}
+    }
 
-void loop() {
+    void loop() {
     // Enviar "Arduino is alive!!" cada 5 segundos
     if ((millis() - last_time) > 5000) {
         Serial.print("Arduino is alive!!\n");
@@ -101,31 +99,30 @@ void loop() {
     }
 }
 ```
-Consideraciones
+## Consideraciones
 Velocidad de Comunicación: La velocidad de comunicación está configurada en 19200 baudios, por lo que Unity debe usar la misma velocidad para que la conexión funcione correctamente.
 
 Uso de millis() en lugar de delay(): millis() mide el tiempo transcurrido sin bloquear el ciclo loop(), permitiendo enviar el mensaje "Arduino is alive!!" cada 5 segundos sin interrumpir la ejecución de otros procesos.
 
 Lectura Directa de Serial.read(): En lugar de usar Serial.available(), el código lee directamente del buffer serial. Si no hay datos en el buffer, Serial.read() devuelve -1, lo cual se ignora aquí, pero es importante tener en cuenta para evitar errores en otras implementaciones.
 
-Protocolo ASCII: El uso de Serial.print() con \n al final de cada mensaje sugiere un protocolo ASCII de comunicación.
+## Protocolo ASCII: El uso de Serial.print() con \n al final de cada mensaje sugiere un protocolo ASCII de comunicación.
 
-Análisis del Lado de Unity - DemoScene_UserPoll_ReadWrite
+## Análisis del Lado de Unity - DemoScene_UserPoll_ReadWrite
 Para analizar esta parte, cargué la escena DemoScene_UserPoll_ReadWrite en Unity. En ella, el GameObject SampleUserPolling_ReadWrite tiene dos componentes:
 
-Transform: Propio de Unity para posicionamiento.
+## Transform: Propio de Unity para posicionamiento.
 Script SampleUserPolling_ReadWrite: Contiene el código de interacción entre Unity y Arduino.
 El script en este objeto expone la variable pública serialController, que es de tipo SerialController. Esta variable permite la referencia a otro GameObject llamado SerialController. En el editor de Unity, arrastré este GameObject al campo serialController en SampleUserPolling_ReadWrite para enlazar los dos objetos.
 
-Script SampleUserPolling_ReadWrite
+## Script SampleUserPolling_ReadWrite
 A continuación se muestra el código del script SampleUserPolling_ReadWrite en Unity:
-```
-csharp
-Copiar código
-using UnityEngine;
-using System.Collections;
 
-public class SampleUserPolling_ReadWrite : MonoBehaviour {
+```
+    using UnityEngine;
+    using System.Collections;
+    
+    public class SampleUserPolling_ReadWrite : MonoBehaviour {
     public SerialController serialController;
 
     // Inicialización
@@ -159,9 +156,9 @@ public class SampleUserPolling_ReadWrite : MonoBehaviour {
             Debug.Log("Message arrived: " + message);
         }
     }
-}
+    }
 ```
-Prueba de Ejecución
+- Prueba de Ejecución
 Configuración del Puerto Serial: Configuré el puerto serial (COM4 en mi caso) en el inspector de Unity para el SerialController.
 
 Prueba de Envío y Recepción:
@@ -181,15 +178,14 @@ La recepción de mensajes se verifica en cada frame en el método Update().
 Detalles de la Comunicación y la Concurrencia:
 
 SerialController usa un segundo hilo (thread) para la comunicación serial:
-csharp
-Copiar código
-protected Thread thread;
+
+## protected Thread thread;
 protected SerialThreadLines serialThread;
 El método onEnable en SerialController inicializa un hilo que ejecuta serialThread.RunForever para mantener una conexión constante con Arduino:
-csharp
-Copiar código
+
 serialThread = new SerialThreadLines(portName, baudRate, reconnectionDelay, maxUnreadMessages);
 thread = new Thread(new ThreadStart(serialThread.RunForever));
 thread.Start();
-Conclusión
+
+## Conclusión
 La implementación en DemoScene_UserPoll_ReadWrite permite el envío y recepción de mensajes en tiempo real entre Unity y Arduino. La comunicación es manejada en segundo plano mediante SerialController, lo cual optimiza el flujo sin bloquear la ejecución principal de Unity.
